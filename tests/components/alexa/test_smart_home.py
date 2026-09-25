@@ -2400,6 +2400,38 @@ async def test_cover_position_range(
     )
 
 
+async def test_cover_position_range_adjust_from_closed(
+    hass: HomeAssistant,
+) -> None:
+    """Test AdjustRangeValue succeeds when a cover is fully closed.
+
+    Regression test for a truthiness check that treated a current_position
+    of 0 as "position unknown" and rejected the request.
+    """
+    device = (
+        "cover.test_range_closed",
+        "closed",
+        {
+            "friendly_name": "Test closed cover range",
+            "device_class": "blind",
+            "supported_features": 7,
+            "current_position": 0,
+        },
+    )
+    await discovery_test(device, hass)
+
+    call, _ = await assert_request_calls_service(
+        "Alexa.RangeController",
+        "AdjustRangeValue",
+        "cover#test_range_closed",
+        "cover.set_cover_position",
+        hass,
+        payload={"rangeValueDelta": 10, "rangeValueDeltaDefault": False},
+        instance="cover.position",
+    )
+    assert call.data["position"] == 10
+
+
 async def test_valve_position_range(
     hass: HomeAssistant,
 ) -> None:
@@ -4767,6 +4799,38 @@ async def test_cover_tilt_position_range(hass: HomeAssistant) -> None:
         "tilt_position",
         instance="cover.tilt",
     )
+
+
+async def test_cover_tilt_position_range_adjust_from_closed(
+    hass: HomeAssistant,
+) -> None:
+    """Test AdjustRangeValue succeeds when a cover tilt is fully closed.
+
+    Regression test for a truthiness check that treated a tilt_position
+    of 0 as "position unknown" and rejected the request.
+    """
+    device = (
+        "cover.test_tilt_range_closed",
+        "closed",
+        {
+            "friendly_name": "Test closed cover tilt range",
+            "device_class": "blind",
+            "supported_features": 240,
+            "tilt_position": 0,
+        },
+    )
+    await discovery_test(device, hass)
+
+    call, _ = await assert_request_calls_service(
+        "Alexa.RangeController",
+        "AdjustRangeValue",
+        "cover#test_tilt_range_closed",
+        "cover.set_cover_tilt_position",
+        hass,
+        payload={"rangeValueDelta": 10, "rangeValueDeltaDefault": False},
+        instance="cover.tilt",
+    )
+    assert call.data["tilt_position"] == 10
 
 
 @pytest.mark.parametrize(
